@@ -6,120 +6,131 @@
   <title>継続力ダッシュボード</title>
   <meta name="description" content="毎日の発信を無理なく続けるためのシンプルな継続管理アプリ">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#6d3df5">
+  <meta name="theme-color" content="#38bdf8">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Auth Overlay -->
   <div id="authOverlay" class="auth-overlay">
-  <div class="auth-card">
-    <div class="card-label">CONTINUE DASHBOARD</div>
-    <h2>ログイン / 新規登録</h2>
-    <p class="sub">お好きなユーザーネームと6桁のパスワードを入力してください。</p>
-    
-    <input type="text" id="usernameInput" placeholder="ユーザーネーム（例: taro）" autocomplete="username" style="margin-bottom: 10px; font-size: 16px; letter-spacing: normal;">
-    <input type="password" id="passInput" maxlength="6" pattern="[0-9]*" placeholder="6桁の数字（例: 123456）" autocomplete="current-password">
-    
-    <button id="loginBtn" class="primary-btn" type="button">ダッシュボードを開始</button>
-    <div id="authError" class="auth-error"></div>
+    <div class="auth-card">
+      <div class="card-label">CONTINUE DASHBOARD</div>
+      <h2>ログイン / 新規登録</h2>
+      <p class="sub">お好きなユーザーネームと6桁のパスワードを入力してください。</p>
+      
+      <div class="input-group">
+        <input type="text" id="usernameInput" placeholder="ユーザーネーム（例: taro）" autocomplete="username">
+        <input type="password" id="passInput" maxlength="6" pattern="[0-9]*" placeholder="6桁の数字（例: 123456）" autocomplete="current-password">
+      </div>
+      
+      <button id="loginBtn" class="primary-btn" type="button">ダッシュボードを開始</button>
+      <div id="authError" class="auth-error"></div>
+    </div>
   </div>
-</div>
-  <div class="app">
+
+  <div class="container">
     <header class="topbar">
       <div>
         <div class="eyebrow">CONTINUE / 01</div>
         <h1>継続力ダッシュボード</h1>
-        <p>完璧より、続けられるペース。</p>
+        <p class="sub">完璧より、続けられるペース。</p>
       </div>
-      <div class="user-status">
-        <span id="userCodeLabel" class="code-badge">Code: ------</span>
-        <button id="logoutBtn" class="ghost-btn" type="button">ログアウト</button>
+      <div class="user-info">
+        <span id="userCodeLabel" class="code-badge">User: ------</span>
+        <button id="logoutBtn" class="logout-btn" type="button">ログアウト</button>
       </div>
     </header>
 
     <main>
+      <!-- Hero Grid -->
       <section class="hero-grid">
+        <!-- Today Card -->
         <div class="card today-card">
           <div class="card-label">TODAY</div>
           <h2>今日の発信</h2>
 
-          <label for="task">今日やること</label>
-          <textarea id="task" rows="3" placeholder="例：noteの記事の見出しを3つ作る"></textarea>
+          <div class="today-form">
+            <div class="input-group">
+              <label for="task">今日やること</label>
+              <textarea id="task" rows="3" placeholder="例：noteの記事の見出しを3つ作る"></textarea>
+            </div>
 
-          <div class="two-col">
-            <div>
-              <label for="minutes">予定時間</label>
-              <div class="input-with-unit">
-                <input id="minutes" type="number" min="1" max="1440" value="30">
-                <span>分</span>
+            <div class="two-col">
+              <div class="input-group">
+                <label for="minutes">予定時間</label>
+                <div class="input-with-unit">
+                  <input id="minutes" type="number" min="1" max="1440" value="30">
+                  <span class="unit">分</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="mode">今日のモード</label>
+                <select id="mode">
+                  <option value="100">🔥 100% ハイギア</option>
+                  <option value="50" selected>⚙️ 50% ノーマル</option>
+                  <option value="10">🐢 10% ローギア</option>
+                </select>
               </div>
             </div>
-            <div>
-              <label for="mode">今日のモード</label>
-              <select id="mode">
-                <option value="100">🔥 100% ハイギア</option>
-                <option value="50" selected>⚙️ 50% ノーマル</option>
-                <option value="10">🐢 10% ローギア</option>
-              </select>
+
+            <div class="mode-selector">
+              <button class="mode-pill" data-mode="100">🔥 100%</button>
+              <button class="mode-pill active" data-mode="50">⚙️ 50%</button>
+              <button class="mode-pill" data-mode="10">🐢 10%</button>
             </div>
-          </div>
 
-          <div class="modes">
-            <button class="mode-pill" data-mode="100">🔥 100%</button>
-            <button class="mode-pill active" data-mode="50">⚙️ 50%</button>
-            <button class="mode-pill" data-mode="10">🐢 10%</button>
+            <button id="completeBtn" class="complete-btn" type="button">☐ 今日の作業を完了する</button>
+            <div id="todayStatus" class="today-status">まだ完了していません</div>
           </div>
-
-          <button id="completeBtn" class="primary-btn" type="button">☐ 今日の作業を完了する</button>
-          <div id="todayStatus" class="status">まだ完了していません</div>
         </div>
 
+        <!-- Progress Card -->
         <div class="card progress-card">
           <div class="card-label">THIS MONTH</div>
-          <div class="month-row">
-            <div class="month-selector">
-              <button id="prevMonthBtn" class="icon-btn">&lt;</button>
+          <div class="month-header">
+            <div class="month-nav">
+              <button id="prevMonthBtn" class="icon-btn" aria-label="前月">&lt;</button>
               <h2 id="monthTitle">----年--月の進み具合</h2>
-              <button id="nextMonthBtn" class="icon-btn">&gt;</button>
+              <button id="nextMonthBtn" class="icon-btn" aria-label="次月">&gt;</button>
             </div>
             <span id="monthPercent" class="percent">0%</span>
           </div>
 
-          <div class="progress-main">
-            <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
-            <p id="progressMessage">まずは今日を1日積み上げよう。</p>
+          <div class="progress-container">
+            <div class="progress-bg">
+              <div id="progressBar" class="progress-bar"></div>
+            </div>
+            <p id="progressMessage" class="progress-message">まずは今日を1日積み上げよう。</p>
           </div>
 
-          <div class="stats">
-            <div class="stat">
-              <span>活動日</span>
-              <strong id="daysStat">0</strong><small>日</small>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">活動日</div>
+              <div class="stat-value"><strong id="daysStat">0</strong> <small>日</small></div>
+              <div class="stat-target">目標: <input id="targetDays" type="number" min="1" value="20">日</div>
             </div>
-            <div class="stat">
-              <span>作業時間</span>
-              <strong id="hoursStat">0.0</strong><small>時間</small>
+            <div class="stat-item">
+              <div class="stat-label">作業時間</div>
+              <div class="stat-value"><strong id="hoursStat">0.0</strong> <small>時間</small></div>
+              <div class="stat-target">目標: <input id="targetHours" type="number" min="1" value="20">h</div>
             </div>
-            <div class="stat">
-              <span>投稿</span>
-              <strong id="postsStat">0</strong><small>回</small>
+            <div class="stat-item">
+              <div class="stat-label">投稿</div>
+              <div class="stat-value"><strong id="postsStat">0</strong> <small>回</small></div>
+              <div class="stat-target">目標: <input id="targetPosts" type="number" min="1" value="10">回</div>
             </div>
           </div>
-
-          <div class="targets">
-            <div><span>活動日目標</span><input id="targetDays" type="number" min="1" value="20">日</div>
-            <div><span>作業時間目標</span><input id="targetHours" type="number" min="1" value="20">時間</div>
-            <div><span>投稿目標</span><input id="targetPosts" type="number" min="1" value="10">回</div>
-          </div>
-          <p class="hint">目標は自由に変えられます。無理な数字にしないのがコツ。</p>
+          <p class="hint">※ 目標値は直接入力で変更できます。</p>
         </div>
       </section>
 
+      <!-- Monthly Log Section -->
       <section class="card log-card">
-        <div class="section-head">
+        <div class="table-header">
           <div>
             <div class="card-label">DAILY LOG</div>
             <h2>月間記録</h2>
           </div>
-          <button id="todayRowBtn" class="secondary-btn" type="button">今日の行へ</button>
+          <button id="todayRowBtn" class="today-row-btn" type="button">今日の行へ移動</button>
         </div>
 
         <div class="table-wrap">
@@ -139,26 +150,32 @@
         </div>
       </section>
 
+      <!-- Bottom Grid -->
       <section class="bottom-grid">
+        <!-- Ideas Card -->
         <div class="card">
           <div class="card-label">IDEA BOX</div>
           <h2>💡 ネタストック</h2>
           <p class="sub">思いついた瞬間にメモ。育てるのは後でOK。</p>
-          <div id="ideas"></div>
-          <button id="addIdeaBtn" class="secondary-btn full" type="button">＋ ネタを追加</button>
+          <div id="ideas" class="ideas-list"></div>
+          <button id="addIdeaBtn" class="add-idea-btn" type="button">＋ ネタを追加</button>
         </div>
 
+        <!-- Reflection & Data Card -->
         <div class="card">
           <div class="card-label">REFLECTION & BACKUP</div>
           <h2>📝 今日の振り返り & データ操作</h2>
           <p class="sub">今日できたこと・気づいたことを一言だけ。</p>
-          <textarea id="reflection" class="reflection" rows="5" placeholder="例：10分だけでも始めたら意外と進んだ。"></textarea>
+          
+          <div class="input-group" style="margin-top: 10px;">
+            <textarea id="reflection" rows="4" placeholder="例：10分だけでも始めたら意外と進んだ。"></textarea>
+          </div>
 
-          <button id="saveAllBtn" class="primary-btn full" type="button" style="margin-bottom: 12px; margin-top: 12px;">💾 変更を保存する</button>
+          <button id="saveAllBtn" class="primary-btn full-btn" type="button">💾 変更を保存する</button>
 
           <div class="backup-actions">
-            <button id="exportBtn" class="secondary-btn" type="button">JSONエクスポート</button>
-            <button id="importBtn" class="secondary-btn" type="button">JSONインポート</button>
+            <button id="exportBtn" type="button">JSONエクスポート</button>
+            <button id="importBtn" type="button">JSONインポート</button>
             <input type="file" id="importFile" accept="application/json" style="display:none">
           </div>
         </div>
