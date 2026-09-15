@@ -4,7 +4,7 @@ import {
   createUserWithEmailAndPassword, 
   onAuthStateChanged, 
   signOut,
-  doc, setDoc, getDoc, collection, onSnapshot, writeBatch 
+  doc, setDoc, getDoc, collection, getDocs, writeBatch 
 } from "./firebase-config.js";
 
 const $=id=>document.getElementById(id);
@@ -12,8 +12,6 @@ const todayKey=()=>new Date().toISOString().slice(0,10);
 
 let currentUser = null;
 let currentMonth = new Date().toISOString().slice(0,7);
-let unsubUser = null;
-let unsubLogs = null;
 
 let state = {
   targets: { days: 20, hours: 20, posts: 10 },
@@ -42,7 +40,7 @@ function changeMonth(diff) {
   }
 
   currentMonth = `${y}-${String(m).padStart(2, "0")}`;
-  subscribeLogs();
+  loadLogs();
 }
 
 // --- Firebase 連携 ---
@@ -83,19 +81,17 @@ async function handleLogin() {
   }
 }
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (user) {
     currentUser = user;
     const savedUser = localStorage.getItem("keizoku_username") || "User";
     $("userCodeLabel").textContent = `User: ${savedUser}`;
     $("authOverlay").style.display = "none";
-    subscribeUserData();
-    subscribeLogs();
+    await loadUserData();
+    await loadLogs();
   } else {
     currentUser = null;
     $("authOverlay").style.display = "flex";
-    if (unsubUser) unsubUser();
-    if (unsubLogs) unsubLogs();
   }
 });
 
@@ -105,53 +101,63 @@ $("logoutBtn").addEventListener("click", () => {
   signOut(auth);
 });
 
-// Realtime Snapshots
-function subscribeUserData() {
+// データ取得（1回のみロード）
+async function loadUserData() {
   if (!currentUser) return;
   const userRef = doc(db, "users", currentUser.uid);
-  unsubUser = onSnapshot(userRef, docSnap => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.targets) state.targets = data.targets;
-      if (data.ideas) state.ideas = data.ideas;
-      if (data.reflection !== undefined) state.reflection = data.reflection;
-      updateUI();
-    } else {
-      saveUserData();
-    }
-  });
+  const docSnap = await getDoc(userRef);
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    if (data.targets) state.targets = data.targets;
+    if (data.ideas) state.ideas = data.ideas;
+    if (data.reflection !== undefined) state.reflection = data.reflection;
+  }
+  updateUI();
 }
 
-function subscribeLogs() {
+async function loadLogs() {
   if (!currentUser) return;
-  if (unsubLogs) unsubLogs();
   const logsRef = collection(db, "users", currentUser.uid, "logs");
-  unsubLogs = onSnapshot(logsRef, snapshot => {
-    state.logs = {};
-    snapshot.forEach(doc => {
-      state.logs[doc.id] = doc.data();
-    });
-    updateUI();
+  const snapshot = await getDocs(logsRef);
+  state.logs = {};
+  snapshot.forEach(doc => {
+    state.logs[doc.id] = doc.data();
   });
+  updateUI();
 }
 
-// Firestore 保存処理
-async function saveUserData() {
+// 一括保存処理（保存ボタン押下時のみ実行）
+async function saveAllData() {
   if (!currentUser) return;
-  await setDoc(doc(db, "users", currentUser.uid), {
-    targets: state.targets,
-    ideas: state.ideas,
-    reflection: state.reflection,
-    updatedAt: new Date()
-  }, { merge: true });
-}
+  const saveBtn = $("saveAllBtn");
+  if (saveBtn) saveBtn.textContent = "保存中...";
 
-async function saveLogData(date, logObj) {
-  if (!currentUser) return;
-  await setDoc(doc(db, "users", currentUser.uid, "logs", date), {
-    ...logObj,
-    updatedAt: new Date()
-  }, { merge: true });
+  try {
+    // ユーザー基本情報の保存
+    await setDoc(doc(db, "users", currentUser.uid), {
+      targets: state.targets,
+      ideas: state.ideas,
+      reflection: state.reflection,
+      updatedAt: new Date()
+    }, { merge: true });
+
+    // ログ情報の一括保存 (Batch処理)
+    const batch = writeBatch(db);
+    Object.keys(state.logs).forEach(date => {
+      const logRef = doc(db, "users", currentUser.uid, "logs", date);
+      batch.set(logRef, {
+        ...state.logs[date],
+        updatedAt: new Date()
+      }, { merge: true });
+    });
+    await batch.commit();
+
+    alert("すべてのデータを保存しました！");
+  } catch (err) {
+    alert("保存に失敗しました: " + err.message);
+  } finally {
+    if (saveBtn) saveBtn.textContent = "💾 変更を保存する";
+  }
 }
 
 function ensureLog(date) {
@@ -229,7 +235,7 @@ function renderLogsTable(dates) {
     body.appendChild(tr);
   });
 
-  body.querySelectorAll("input,select").forEach(el => el.addEventListener("change", e => {
+  body.querySelectorAll("input,select").forEach(el => el.addEventListener("input", e => {
     const date = e.target.dataset.date;
     const d = ensureLog(date);
     if (e.target.classList.contains("log-task")) d.task = e.target.value;
@@ -237,7 +243,6 @@ function renderLogsTable(dates) {
     if (e.target.classList.contains("log-mode")) d.mode = e.target.value;
     if (e.target.classList.contains("log-post")) d.post = e.target.checked;
     if (e.target.classList.contains("log-done")) d.done = e.target.checked;
-    saveLogData(date, d);
   }));
 }
 
@@ -254,13 +259,10 @@ function renderIdeas() {
   });
 
   wrap.querySelectorAll("input").forEach(el => {
-    const updateHandler = e => {
+    el.addEventListener("input", e => {
       const idx = Number(e.target.dataset.idea);
       state.ideas[idx] = e.target.value;
-      saveUserData();
-    };
-    el.addEventListener("input", updateHandler);
-    el.addEventListener("change", updateHandler);
+    });
   });
 
   wrap.querySelectorAll("button").forEach(el => el.addEventListener("click", e => {
@@ -268,7 +270,6 @@ function renderIdeas() {
     state.ideas.splice(idx, 1);
     state.ideas.push("");
     renderIdeas();
-    saveUserData();
   }));
 }
 
@@ -278,20 +279,20 @@ function esc(s) { return String(s || "").replaceAll("&", "&amp;").replaceAll("<"
 $("prevMonthBtn").addEventListener("click", () => changeMonth(-1));
 $("nextMonthBtn").addEventListener("click", () => changeMonth(1));
 
-$("task").addEventListener("change", e => {
+// 手動保存ボタン
+$("saveAllBtn")?.addEventListener("click", saveAllData);
+
+$("task").addEventListener("input", e => {
   const d = ensureLog(todayKey());
   d.task = e.target.value;
-  saveLogData(todayKey(), d);
 });
-$("minutes").addEventListener("change", e => {
+$("minutes").addEventListener("input", e => {
   const d = ensureLog(todayKey());
   d.minutes = Number(e.target.value) || 0;
-  saveLogData(todayKey(), d);
 });
 $("mode").addEventListener("change", e => {
   const d = ensureLog(todayKey());
   d.mode = e.target.value;
-  saveLogData(todayKey(), d);
 });
 document.querySelectorAll(".mode-pill").forEach(b => b.addEventListener("click", () => {
   $("mode").value = b.dataset.mode;
@@ -300,25 +301,22 @@ document.querySelectorAll(".mode-pill").forEach(b => b.addEventListener("click",
 $("completeBtn").addEventListener("click", () => {
   const d = ensureLog(todayKey());
   d.done = !d.done;
-  saveLogData(todayKey(), d);
+  updateUI();
 });
-$("reflection").addEventListener("change", e => {
+$("reflection").addEventListener("input", e => {
   state.reflection = e.target.value;
-  saveUserData();
 });
-["targetDays", "targetHours", "targetPosts"].forEach((id, i) => $(id).addEventListener("change", e => {
+["targetDays", "targetHours", "targetPosts"].forEach((id, i) => $(id).addEventListener("input", e => {
   const keys = ["days", "hours", "posts"];
   state.targets[keys[i]] = Math.max(1, Number(e.target.value) || 1);
-  saveUserData();
 }));
 $("addIdeaBtn").addEventListener("click", () => {
   state.ideas.push("");
   renderIdeas();
-  saveUserData();
 });
 $("todayRowBtn").addEventListener("click", () => {
   currentMonth = todayKey().slice(0, 7);
-  subscribeLogs();
+  loadLogs();
   setTimeout(() => document.querySelector("tr.today")?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
 });
 
@@ -344,17 +342,9 @@ $("importFile").addEventListener("change", e => {
       if (imported.targets) state.targets = imported.targets;
       if (imported.ideas) state.ideas = imported.ideas;
       if (imported.reflection) state.reflection = imported.reflection;
-      await saveUserData();
-
-      if (imported.logs) {
-        const batch = writeBatch(db);
-        Object.keys(imported.logs).forEach(date => {
-          const ref = doc(db, "users", currentUser.uid, "logs", date);
-          batch.set(ref, imported.logs[date]);
-        });
-        await batch.commit();
-      }
-      alert("インポートが完了しました。");
+      if (imported.logs) state.logs = imported.logs;
+      updateUI();
+      await saveAllData();
     } catch (err) {
       alert("JSONの読み込みに失敗しました: " + err.message);
     }
