@@ -253,13 +253,21 @@ function renderIdeas() {
     wrap.appendChild(row);
   });
 
-  wrap.querySelectorAll("input").forEach(el => el.addEventListener("change", e => {
-    state.ideas[Number(e.target.dataset.idea)] = e.target.value;
-    saveUserData();
-  }));
+  wrap.querySelectorAll("input").forEach(el => {
+    const updateHandler = e => {
+      const idx = Number(e.target.dataset.idea);
+      state.ideas[idx] = e.target.value;
+      saveUserData();
+    };
+    el.addEventListener("input", updateHandler);
+    el.addEventListener("change", updateHandler);
+  });
+
   wrap.querySelectorAll("button").forEach(el => el.addEventListener("click", e => {
-    state.ideas.splice(Number(e.target.dataset.del), 1);
+    const idx = Number(e.target.dataset.del);
+    state.ideas.splice(idx, 1);
     state.ideas.push("");
+    renderIdeas();
     saveUserData();
   }));
 }
