@@ -2,33 +2,15 @@ import {
   auth, db, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  onAuthStateChanged(auth, user => {
-  if (user) {
-    currentUser = user;
-    const savedUser = localStorage.getItem("keizoku_username") || "User";
-    $("userCodeLabel").textContent = `User: ${savedUser}`;
-    $("authOverlay").style.display = "none";
-    subscribeUserData();
-    subscribeLogs();
-  } else {
-    currentUser = null;
-    $("authOverlay").style.display = "flex";
-    if (unsubUser) unsubUser();
-    if (unsubLogs) unsubLogs();
-  }
-});
-
-$("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("keizoku_username");
-  signOut(auth);
-}); 
+  onAuthStateChanged, 
+  signOut,
+  doc, setDoc, getDoc, collection, onSnapshot, writeBatch 
 } from "./firebase-config.js";
 
 const $=id=>document.getElementById(id);
 const todayKey=()=>new Date().toISOString().slice(0,10);
 
 let currentUser = null;
-let currentCode = "";
 let currentMonth = new Date().toISOString().slice(0,7);
 let unsubUser = null;
 let unsubLogs = null;
@@ -65,7 +47,6 @@ function changeMonth(diff) {
 
 // --- Firebase 連携 ---
 function usernameToEmail(username) {
-  // ユーザーネームを小文字に統一し、メール形式に変換
   return `${username.trim().toLowerCase()}@keizoku.app`;
 }
 
@@ -86,13 +67,11 @@ async function handleLogin() {
   const email = usernameToEmail(username);
 
   try {
-    // 既存ユーザーのログイン試行
     await signInWithEmailAndPassword(auth, email, pass);
     localStorage.setItem("keizoku_username", username);
   } catch (err) {
     if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
       try {
-        // 新規アカウント作成
         await createUserWithEmailAndPassword(auth, email, pass);
         localStorage.setItem("keizoku_username", username);
       } catch (createErr) {
@@ -104,39 +83,11 @@ async function handleLogin() {
   }
 }
 
-async function handleLogin() {
-  const code = $("accessCodeInput").value.trim();
-  $("authError").textContent = "";
-  if (!/^\d{6}$/.test(code)) {
-    $("authError").textContent = "6桁の数字を入力してください。";
-    return;
-  }
-  
-  const email = codeToEmail(code);
-  const pass = codeToPassword(code);
-
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-    localStorage.setItem("keizoku_code", code);
-  } catch (err) {
-    if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
-      try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        localStorage.setItem("keizoku_code", code);
-      } catch (createErr) {
-        $("authError").textContent = "アカウント作成に失敗しました: " + createErr.message;
-      }
-    } else {
-      $("authError").textContent = "ログインエラー: " + err.message;
-    }
-  }
-}
-
 onAuthStateChanged(auth, user => {
   if (user) {
     currentUser = user;
-    currentCode = localStorage.getItem("keizoku_code") || "6桁コード";
-    $("userCodeLabel").textContent = `Code: ${currentCode}`;
+    const savedUser = localStorage.getItem("keizoku_username") || "User";
+    $("userCodeLabel").textContent = `User: ${savedUser}`;
     $("authOverlay").style.display = "none";
     subscribeUserData();
     subscribeLogs();
@@ -150,7 +101,7 @@ onAuthStateChanged(auth, user => {
 
 $("loginBtn").addEventListener("click", handleLogin);
 $("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("keizoku_code");
+  localStorage.removeItem("keizoku_username");
   signOut(auth);
 });
 
