@@ -249,6 +249,8 @@ function renderLogsTable(dates) {
 function renderIdeas() {
   const wrap = $("ideas"); 
   wrap.innerHTML = "";
+  
+  // 初期状態で最低5行は確保する
   while (state.ideas.length < 5) state.ideas.push("");
 
   state.ideas.forEach((idea, i) => {
@@ -267,8 +269,9 @@ function renderIdeas() {
 
   wrap.querySelectorAll("button").forEach(el => el.addEventListener("click", e => {
     const idx = Number(e.target.dataset.del);
+    // 該当の要素を削除する
     state.ideas.splice(idx, 1);
-    state.ideas.push("");
+    // 削除後に画面を更新
     renderIdeas();
   }));
 }
