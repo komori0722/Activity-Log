@@ -1,4 +1,4 @@
-const CACHE_NAME = 'keizoku-dashboard-v1';
+const CACHE_NAME = 'keizoku-dashboard-v2';
 const ASSETS = [
   './',
   './index.html',
