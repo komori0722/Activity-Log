@@ -5,9 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>継続力ダッシュボード</title>
   <meta name="description" content="毎日の発信を無理なく続けるためのシンプルな継続管理アプリ">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6d3df5">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="card-label">CONTINUE DASHBOARD</div>
+      <h2>6桁コードでログイン</h2>
+      <p class="sub">note購入特典の6桁アクセスコードを入力してください。</p>
+      <input type="text" id="accessCodeInput" maxlength="6" pattern="[0-9]*" placeholder="例: 123456" autocomplete="off">
+      <button id="loginBtn" class="primary-btn" type="button">ダッシュボードを開始</button>
+      <div id="authError" class="auth-error"></div>
+    </div>
+  </div>
+
   <div class="app">
     <header class="topbar">
       <div>
@@ -15,7 +28,10 @@
         <h1>継続力ダッシュボード</h1>
         <p>完璧より、続けられるペース。</p>
       </div>
-      <button id="resetBtn" class="ghost-btn" type="button">データをリセット</button>
+      <div class="user-status">
+        <span id="userCodeLabel" class="code-badge">Code: ------</span>
+        <button id="logoutBtn" class="ghost-btn" type="button">ログアウト</button>
+      </div>
     </header>
 
     <main>
@@ -58,7 +74,11 @@
         <div class="card progress-card">
           <div class="card-label">THIS MONTH</div>
           <div class="month-row">
-            <h2 id="monthTitle">今月の進み具合</h2>
+            <div class="month-selector">
+              <button id="prevMonthBtn" class="icon-btn">&lt;</button>
+              <h2 id="monthTitle">----年--月の進み具合</h2>
+              <button id="nextMonthBtn" class="icon-btn">&gt;</button>
+            </div>
             <span id="monthPercent" class="percent">0%</span>
           </div>
 
@@ -95,7 +115,7 @@
         <div class="section-head">
           <div>
             <div class="card-label">DAILY LOG</div>
-            <h2>今月の記録</h2>
+            <h2>月間記録</h2>
           </div>
           <button id="todayRowBtn" class="secondary-btn" type="button">今日の行へ</button>
         </div>
@@ -127,17 +147,30 @@
         </div>
 
         <div class="card">
-          <div class="card-label">REFLECTION</div>
-          <h2>📝 今日のひとこと</h2>
+          <div class="card-label">REFLECTION & BACKUP</div>
+          <h2>📝 今日の振り返り & データ操作</h2>
           <p class="sub">今日できたこと・気づいたことを一言だけ。</p>
-          <textarea id="reflection" class="reflection" rows="8" placeholder="例：10分だけでも始めたら意外と進んだ。"></textarea>
-          <div class="quote">「10%でも進めた日は、ちゃんと前進。」</div>
+          <textarea id="reflection" class="reflection" rows="5" placeholder="例：10分だけでも始めたら意外と進んだ。"></textarea>
+
+          <div class="backup-actions">
+            <button id="exportBtn" class="secondary-btn" type="button">JSONエクスポート</button>
+            <button id="importBtn" class="secondary-btn" type="button">JSONインポート</button>
+            <input type="file" id="importFile" accept="application/json" style="display:none">
+          </div>
         </div>
       </section>
     </main>
 
     <footer>継続力ダッシュボード — 自分のペースで、今日を積み上げる。</footer>
   </div>
-  <script src="app.js"></script>
+
+  <script type="module" src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

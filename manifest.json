@@ -1,0 +1,20 @@
+{
+  "name": "継続力ダッシュボード",
+  "short_name": "継続ダッシュボード",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#6d3df5",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/6d3df5/ffffff?text=継続",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/6d3df5/ffffff?text=継続",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
