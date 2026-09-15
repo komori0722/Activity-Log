@@ -2,9 +2,26 @@ import {
   auth, db, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  onAuthStateChanged, 
-  signOut,
-  doc, setDoc, getDoc, collection, onSnapshot, writeBatch 
+  onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    const savedUser = localStorage.getItem("keizoku_username") || "User";
+    $("userCodeLabel").textContent = `User: ${savedUser}`;
+    $("authOverlay").style.display = "none";
+    subscribeUserData();
+    subscribeLogs();
+  } else {
+    currentUser = null;
+    $("authOverlay").style.display = "flex";
+    if (unsubUser) unsubUser();
+    if (unsubLogs) unsubLogs();
+  }
+});
+
+$("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("keizoku_username");
+  signOut(auth);
+}); 
 } from "./firebase-config.js";
 
 const $=id=>document.getElementById(id);
@@ -47,11 +64,44 @@ function changeMonth(diff) {
 }
 
 // --- Firebase 連携 ---
-function codeToEmail(code) {
-  return `code${code}@keizoku.app`;
+function usernameToEmail(username) {
+  // ユーザーネームを小文字に統一し、メール形式に変換
+  return `${username.trim().toLowerCase()}@keizoku.app`;
 }
-function codeToPassword(code) {
-  return `keizoku-pass-${code}`;
+
+async function handleLogin() {
+  const username = $("usernameInput").value.trim();
+  const pass = $("passInput").value.trim();
+  $("authError").textContent = "";
+
+  if (!username) {
+    $("authError").textContent = "ユーザーネームを入力してください。";
+    return;
+  }
+  if (!/^\d{6}$/.test(pass)) {
+    $("authError").textContent = "パスワードは6桁の数字で入力してください。";
+    return;
+  }
+
+  const email = usernameToEmail(username);
+
+  try {
+    // 既存ユーザーのログイン試行
+    await signInWithEmailAndPassword(auth, email, pass);
+    localStorage.setItem("keizoku_username", username);
+  } catch (err) {
+    if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
+      try {
+        // 新規アカウント作成
+        await createUserWithEmailAndPassword(auth, email, pass);
+        localStorage.setItem("keizoku_username", username);
+      } catch (createErr) {
+        $("authError").textContent = "登録/ログインエラー: " + createErr.message;
+      }
+    } else {
+      $("authError").textContent = "ログインエラー: " + err.message;
+    }
+  }
 }
 
 async function handleLogin() {

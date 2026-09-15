@@ -11,16 +11,18 @@
 </head>
 <body>
   <div id="authOverlay" class="auth-overlay">
-    <div class="auth-card">
-      <div class="card-label">CONTINUE DASHBOARD</div>
-      <h2>6桁コードでログイン</h2>
-      <p class="sub">note購入特典の6桁アクセスコードを入力してください。</p>
-      <input type="text" id="accessCodeInput" maxlength="6" pattern="[0-9]*" placeholder="例: 123456" autocomplete="off">
-      <button id="loginBtn" class="primary-btn" type="button">ダッシュボードを開始</button>
-      <div id="authError" class="auth-error"></div>
-    </div>
+  <div class="auth-card">
+    <div class="card-label">CONTINUE DASHBOARD</div>
+    <h2>ログイン / 新規登録</h2>
+    <p class="sub">お好きなユーザーネームと6桁のパスワードを入力してください。</p>
+    
+    <input type="text" id="usernameInput" placeholder="ユーザーネーム（例: taro）" autocomplete="username" style="margin-bottom: 10px; font-size: 16px; letter-spacing: normal;">
+    <input type="password" id="passInput" maxlength="6" pattern="[0-9]*" placeholder="6桁の数字（例: 123456）" autocomplete="current-password">
+    
+    <button id="loginBtn" class="primary-btn" type="button">ダッシュボードを開始</button>
+    <div id="authError" class="auth-error"></div>
   </div>
-
+</div>
   <div class="app">
     <header class="topbar">
       <div>
