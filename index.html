@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>継続力ダッシュボード</title>
+  <meta name="description" content="毎日の発信を無理なく続けるためのシンプルな継続管理アプリ">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">CONTINUE / 01</div>
+        <h1>継続力ダッシュボード</h1>
+        <p>完璧より、続けられるペース。</p>
+      </div>
+      <button id="resetBtn" class="ghost-btn" type="button">データをリセット</button>
+    </header>
+
+    <main>
+      <section class="hero-grid">
+        <div class="card today-card">
+          <div class="card-label">TODAY</div>
+          <h2>今日の発信</h2>
+
+          <label for="task">今日やること</label>
+          <textarea id="task" rows="3" placeholder="例：noteの記事の見出しを3つ作る"></textarea>
+
+          <div class="two-col">
+            <div>
+              <label for="minutes">予定時間</label>
+              <div class="input-with-unit">
+                <input id="minutes" type="number" min="1" max="1440" value="30">
+                <span>分</span>
+              </div>
+            </div>
+            <div>
+              <label for="mode">今日のモード</label>
+              <select id="mode">
+                <option value="100">🔥 100% ハイギア</option>
+                <option value="50" selected>⚙️ 50% ノーマル</option>
+                <option value="10">🐢 10% ローギア</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modes">
+            <button class="mode-pill" data-mode="100">🔥 100%</button>
+            <button class="mode-pill active" data-mode="50">⚙️ 50%</button>
+            <button class="mode-pill" data-mode="10">🐢 10%</button>
+          </div>
+
+          <button id="completeBtn" class="primary-btn" type="button">☐ 今日の作業を完了する</button>
+          <div id="todayStatus" class="status">まだ完了していません</div>
+        </div>
+
+        <div class="card progress-card">
+          <div class="card-label">THIS MONTH</div>
+          <div class="month-row">
+            <h2 id="monthTitle">今月の進み具合</h2>
+            <span id="monthPercent" class="percent">0%</span>
+          </div>
+
+          <div class="progress-main">
+            <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
+            <p id="progressMessage">まずは今日を1日積み上げよう。</p>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span>活動日</span>
+              <strong id="daysStat">0</strong><small>日</small>
+            </div>
+            <div class="stat">
+              <span>作業時間</span>
+              <strong id="hoursStat">0.0</strong><small>時間</small>
+            </div>
+            <div class="stat">
+              <span>投稿</span>
+              <strong id="postsStat">0</strong><small>回</small>
+            </div>
+          </div>
+
+          <div class="targets">
+            <div><span>活動日目標</span><input id="targetDays" type="number" min="1" value="20">日</div>
+            <div><span>作業時間目標</span><input id="targetHours" type="number" min="1" value="20">時間</div>
+            <div><span>投稿目標</span><input id="targetPosts" type="number" min="1" value="10">回</div>
+          </div>
+          <p class="hint">目標は自由に変えられます。無理な数字にしないのがコツ。</p>
+        </div>
+      </section>
+
+      <section class="card log-card">
+        <div class="section-head">
+          <div>
+            <div class="card-label">DAILY LOG</div>
+            <h2>今月の記録</h2>
+          </div>
+          <button id="todayRowBtn" class="secondary-btn" type="button">今日の行へ</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th>
+                <th>やったこと</th>
+                <th>時間</th>
+                <th>モード</th>
+                <th>投稿</th>
+                <th>完了</th>
+              </tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="card">
+          <div class="card-label">IDEA BOX</div>
+          <h2>💡 ネタストック</h2>
+          <p class="sub">思いついた瞬間にメモ。育てるのは後でOK。</p>
+          <div id="ideas"></div>
+          <button id="addIdeaBtn" class="secondary-btn full" type="button">＋ ネタを追加</button>
+        </div>
+
+        <div class="card">
+          <div class="card-label">REFLECTION</div>
+          <h2>📝 今日のひとこと</h2>
+          <p class="sub">今日できたこと・気づいたことを一言だけ。</p>
+          <textarea id="reflection" class="reflection" rows="8" placeholder="例：10分だけでも始めたら意外と進んだ。"></textarea>
+          <div class="quote">「10%でも進めた日は、ちゃんと前進。」</div>
+        </div>
+      </section>
+    </main>
+
+    <footer>継続力ダッシュボード — 自分のペースで、今日を積み上げる。</footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
