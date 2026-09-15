@@ -32,8 +32,11 @@ function getMonthDates(monthStr) {
 
 function changeMonth(diff) {
   const [y, m] = currentMonth.split("-").map(Number);
-  const d = new Date(y, m - 1 + diff, 1);
-  currentMonth = d.toISOString().slice(0, 7);
+  // JavaScriptのDateは月が0始まり（0=1月, 11=12月）のため調整
+  const d = new Date(y, (m - 1) + diff, 1);
+  const newY = d.getFullYear();
+  const newM = String(d.getMonth() + 1).padStart(2, "0");
+  currentMonth = `${newY}-${newM}`;
   subscribeLogs();
 }
 
